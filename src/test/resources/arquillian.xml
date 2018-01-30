@@ -27,6 +27,13 @@
     <property name="requires">asciidoctor-diagram</property>
   </extension>
 
+  <extension qualifier="asciidoctor-diagram-pdf">
+    <property name="sourceDirectory">target/adoc-diagram-source</property>
+    <property name="outputDirectory">target/adoc-diagram-target</property>
+    <property name="backend">pdf</property>
+    <property name="requires">asciidoctor-diagram</property>
+  </extension>
+
   <extension qualifier="asciidoctor-article">
     <property name="sourceDirectory">target/adoc-article</property>
     <property name="outputDirectory">target/adoc-rendered</property>

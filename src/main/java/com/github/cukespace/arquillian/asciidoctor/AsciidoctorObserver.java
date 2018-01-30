@@ -1,21 +1,13 @@
 package com.github.cukespace.arquillian.asciidoctor;
 
+import com.github.cukespace.arquillian.asciidoctor.extension.PostProcessorExtension;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.AttributesBuilder;
 import org.asciidoctor.OptionsBuilder;
 import org.asciidoctor.SafeMode;
-import org.asciidoctor.extension.BlockMacroProcessor;
-import org.asciidoctor.extension.BlockProcessor;
-import org.asciidoctor.extension.DocinfoProcessor;
-import org.asciidoctor.extension.IncludeProcessor;
-import org.asciidoctor.extension.InlineMacroProcessor;
-import org.asciidoctor.extension.JavaExtensionRegistry;
-import org.asciidoctor.extension.Postprocessor;
-import org.asciidoctor.extension.Preprocessor;
-import org.asciidoctor.extension.Processor;
-import org.asciidoctor.extension.Treeprocessor;
+import org.asciidoctor.extension.*;
 import org.asciidoctor.extension.spi.ExtensionRegistry;
 import org.asciidoctor.internal.JRubyRuntimeContext;
 import org.jboss.arquillian.config.descriptor.api.ArquillianDescriptor;
@@ -28,22 +20,13 @@ import org.jboss.arquillian.core.api.event.ManagerStopping;
 import org.jboss.arquillian.core.spi.EventContext;
 import org.jruby.Ruby;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -200,7 +183,7 @@ public class AsciidoctorObserver {
              throw new RuntimeException("Asciidoctor not initilizable properly.");
         }
 
-        final Ruby rubyInstance = JRubyRuntimeContext.get();
+        final Ruby rubyInstance = JRubyRuntimeContext.get(asciidoctor);
         final String gemHome = rubyInstance.evalScriptlet("ENV['GEM_HOME']").toString();
         final String gemHomeExpected = (gemPath == null || "".equals(gemPath)) ? "" : gemPath.split(java.io.File.pathSeparator)[0];
         if (!"".equals(gemHome) && !gemHomeExpected.equals(gemHome)) {
@@ -339,6 +322,12 @@ public class AsciidoctorObserver {
 
 
     private void renderFile(final String name, final Asciidoctor asciidoctor, final Map<String, Object> options, final File f) {
+         if (options.get("backend").toString().equalsIgnoreCase("pdf")) {
+             getLogger().info("Unregistering...");
+             //asciidoctor.unregisterAllExtensions(); //works but also remove extensions we don't want (diagram)
+             ExtensionGroup postprocessor = asciidoctor.createGroup().postprocessor(PostProcessorExtension.class);
+             postprocessor.unregister(); //do not work (cannot convert instance of class org.jruby.RubyObjectVar9), looks like the extensions is not being removed because the error is the same without unregister
+         }
         asciidoctor.renderFile(f, options);
         getLogger().info("Rendered " + f + " @ " + name);
     }
