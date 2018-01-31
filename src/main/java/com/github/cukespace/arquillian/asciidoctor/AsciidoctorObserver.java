@@ -325,7 +325,7 @@ public class AsciidoctorObserver {
          if (options.get("backend").toString().equalsIgnoreCase("pdf")) {
              getLogger().info("Unregistering...");
              //asciidoctor.unregisterAllExtensions(); //works but also remove extensions we don't want (diagram)
-             ExtensionGroup postprocessor = asciidoctor.createGroup().postprocessor(PostProcessorExtension.class);
+             ExtensionGroup postprocessor = asciidoctor.createGroup("mygroup").postprocessor(PostProcessorExtension.class);
              postprocessor.unregister(); //do not work (cannot convert instance of class org.jruby.RubyObjectVar9), looks like the extensions is not being removed because the error is the same without unregister
          }
         asciidoctor.renderFile(f, options);
